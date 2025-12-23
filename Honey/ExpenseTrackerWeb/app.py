@@ -17,11 +17,11 @@ app.secret_key = 'expense_tracker_secret_key_2025'
 
 # Database Configuration
 DB_CONFIG = {
-    'host': os.environ.get('DB_HOST', 'localhost'),
-    'user': os.environ.get('DB_USER', 'root'),
-    'password': os.environ.get('DB_PASSWORD', '12345'),
-    'database': os.environ.get('DB_NAME', 'expense_tracker'),
-    'port': int(os.environ.get('DB_PORT', 3306))
+    'host': os.environ.get('DB_HOST', os.environ.get('MYSQLHOST', 'localhost')),
+    'user': os.environ.get('DB_USER', os.environ.get('MYSQLUSER', 'root')),
+    'password': os.environ.get('DB_PASSWORD', os.environ.get('MYSQLPASSWORD', '12345')),
+    'database': os.environ.get('DB_NAME', os.environ.get('MYSQLDATABASE', 'expense_tracker')),
+    'port': int(os.environ.get('DB_PORT', os.environ.get('MYSQLPORT', 3306)))
 }
 
 # Connection Pool
