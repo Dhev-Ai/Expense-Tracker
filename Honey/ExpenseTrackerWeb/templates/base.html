@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Expense Tracker{% endblock %}</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --primary: #667eea;
+        --primary-dark: #5a67d8;
+        --secondary: #48bb78;
+        --danger: #f56565;
+        --warning: #ed8936;
+        --bg-dark: #1a202c;
+        --bg-card: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #a0aec0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, var(--bg-dark) 0%, #2d3748 100%);
+        min-height: 100vh;
+        color: var(--text-primary);
+      }
+
+      /* Navbar */
+      .navbar {
+        background: rgba(45, 55, 72, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--primary) !important;
+      }
+
+      .nav-link {
+        color: var(--text-secondary) !important;
+        font-weight: 500;
+        padding: 0.5rem 1rem !important;
+        border-radius: 8px;
+        transition: all 0.3s;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        color: var(--text-primary) !important;
+        background: rgba(102, 126, 234, 0.2);
+      }
+
+      /* Cards */
+      .card {
+        background: var(--bg-card);
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-weight: 600;
+      }
+
+      /* Stat Cards */
+      .stat-card {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+        transition: transform 0.3s;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-card.success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      }
+
+      .stat-card.warning {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+      }
+
+      .stat-card.danger {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .stat-label {
+        opacity: 0.9;
+        font-size: 0.9rem;
+      }
+
+      /* Buttons */
+      .btn-primary {
+        background: var(--primary);
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      .btn-success {
+        background: var(--secondary);
+        border: none;
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        border: none;
+      }
+
+      /* Forms */
+      .form-control,
+      .form-select {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: var(--primary);
+        color: var(--text-primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+      }
+
+      .form-control::placeholder {
+        color: var(--text-secondary);
+      }
+
+      .form-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      /* Tables */
+      .table {
+        color: var(--text-primary);
+      }
+
+      .table thead th {
+        background: rgba(102, 126, 234, 0.2);
+        border: none;
+        font-weight: 600;
+      }
+
+      .table tbody tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      /* Expense Item */
+      .expense-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.3s;
+      }
+
+      .expense-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .expense-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+      }
+
+      .expense-amount {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--danger);
+      }
+
+      /* Progress Bar */
+      .progress {
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .progress-bar {
+        border-radius: 10px;
+      }
+
+      /* Alerts */
+      .alert {
+        border: none;
+        border-radius: 12px;
+      }
+
+      /* Bottom Navigation (Mobile) */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(45, 55, 72, 0.98);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: none;
+        padding: 0.5rem;
+        z-index: 1000;
+      }
+
+      .bottom-nav a {
+        flex: 1;
+        text-align: center;
+        padding: 0.75rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .bottom-nav a.active {
+        color: var(--primary);
+      }
+
+      .bottom-nav i {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+      }
+
+      @media (max-width: 768px) {
+        .bottom-nav {
+          display: flex;
+        }
+
+        .navbar .nav {
+          display: none;
+        }
+
+        body {
+          padding-bottom: 80px;
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+        }
+      }
+
+      /* Animation */
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Chart Container */
+      .chart-container {
+        position: relative;
+        height: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    {% if current_user.is_authenticated %}
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+          💰 Expense Tracker
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a
+                class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
+                href="{{ url_for('dashboard') }}"
+              >
+                <i class="bi bi-house-door me-1"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if request.endpoint == 'expenses' %}active{% endif %}"
+                href="{{ url_for('expenses') }}"
+              >
+                <i class="bi bi-wallet2 me-1"></i> Expenses
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}"
+                href="{{ url_for('reports') }}"
+              >
+                <i class="bi bi-bar-chart me-1"></i> Reports
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link {% if request.endpoint == 'budget' %}active{% endif %}"
+                href="{{ url_for('budget') }}"
+              >
+                <i class="bi bi-piggy-bank me-1"></i> Budget
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-person-circle me-1"></i> {{
+                current_user.full_name }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('logout') }}">
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="bottom-nav">
+      <a
+        href="{{ url_for('dashboard') }}"
+        class="{% if request.endpoint == 'dashboard' %}active{% endif %}"
+      >
+        <i class="bi bi-house-door"></i>
+        Home
+      </a>
+      <a
+        href="{{ url_for('expenses') }}"
+        class="{% if request.endpoint == 'expenses' %}active{% endif %}"
+      >
+        <i class="bi bi-wallet2"></i>
+        Expenses
+      </a>
+      <a
+        href="{{ url_for('add_expense') }}"
+        class="{% if request.endpoint == 'add_expense' %}active{% endif %}"
+      >
+        <i
+          class="bi bi-plus-circle-fill"
+          style="font-size: 2rem; color: var(--primary)"
+        ></i>
+        Add
+      </a>
+      <a
+        href="{{ url_for('reports') }}"
+        class="{% if request.endpoint == 'reports' %}active{% endif %}"
+      >
+        <i class="bi bi-bar-chart"></i>
+        Reports
+      </a>
+      <a
+        href="{{ url_for('budget') }}"
+        class="{% if request.endpoint == 'budget' %}active{% endif %}"
+      >
+        <i class="bi bi-piggy-bank"></i>
+        Budget
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'info' }} alert-dismissible fade show"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="container py-4 fade-in">
+      {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

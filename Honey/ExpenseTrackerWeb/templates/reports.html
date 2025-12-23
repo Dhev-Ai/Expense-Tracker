@@ -1,0 +1,203 @@
+{% extends 'base.html' %} {% block title %}Reports - Expense Tracker{% endblock
+%} {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0"><i class="bi bi-bar-chart me-2"></i> Reports</h2>
+  <div class="btn-group">
+    <a
+      href="{{ url_for('reports', period='week') }}"
+      class="btn {% if period == 'week' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+    >
+      Week
+    </a>
+    <a
+      href="{{ url_for('reports', period='month') }}"
+      class="btn {% if period == 'month' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+    >
+      Month
+    </a>
+    <a
+      href="{{ url_for('reports', period='year') }}"
+      class="btn {% if period == 'year' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+    >
+      Year
+    </a>
+  </div>
+</div>
+
+<!-- Summary Card -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value">₹{{ "%.0f"|format(total) }}</div>
+      <small>This {{ period }}</small>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card success">
+      <div class="stat-label">Categories</div>
+      <div class="stat-value">{{ category_data|length }}</div>
+      <small>Active categories</small>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card warning">
+      <div class="stat-label">Daily Average</div>
+      <div class="stat-value">
+        ₹{{ "%.0f"|format(total / (daily_data|length if daily_data else 1)) }}
+      </div>
+      <small>Per day</small>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Pie Chart -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-pie-chart me-2"></i> Category Distribution
+      </div>
+      <div class="card-body">
+        {% if category_data %}
+        <div class="chart-container">
+          <canvas id="pieChart"></canvas>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-secondary">
+          <i class="bi bi-inbox" style="font-size: 3rem"></i>
+          <p class="mt-2">No data for this period</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bar Chart -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-bar-chart-line me-2"></i> Daily Spending
+      </div>
+      <div class="card-body">
+        {% if daily_data %}
+        <div class="chart-container">
+          <canvas id="barChart"></canvas>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-secondary">
+          <i class="bi bi-inbox" style="font-size: 3rem"></i>
+          <p class="mt-2">No data for this period</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Category Breakdown Table -->
+{% if category_data %}
+<div class="card mt-4">
+  <div class="card-header">
+    <i class="bi bi-table me-2"></i> Category Breakdown
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Percentage</th>
+            <th>Progress</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in category_data %} {% set pct = (cat.total / total * 100)
+          if total > 0 else 0 %}
+          <tr>
+            <td>
+              <span style="color: {{ cat.color or '#667EEA' }};">
+                {{ cat.icon or '📦' }}
+              </span>
+              {{ cat.category_name }}
+            </td>
+            <td class="fw-bold">₹{{ "%.2f"|format(cat.total) }}</td>
+            <td>{{ "%.1f"|format(pct) }}%</td>
+            <td style="width: 30%">
+              <div class="progress">
+                <div
+                  class="progress-bar"
+                  style="width: {{ pct }}%; background: {{ cat.color or '#667EEA' }};"
+                ></div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %} {% endblock %} {% block scripts %}
+<script>
+  {% if category_data %}
+  // Pie Chart
+  new Chart(document.getElementById('pieChart'), {
+      type: 'doughnut',
+      data: {
+          labels: [{% for cat in category_data %}'{{ cat.category_name }}'{% if not loop.last %},{% endif %}{% endfor %}],
+          datasets: [{
+              data: [{% for cat in category_data %}{{ cat.total }}{% if not loop.last %},{% endif %}{% endfor %}],
+              backgroundColor: [{% for cat in category_data %}'{{ cat.color or "#667EEA" }}'{% if not loop.last %},{% endif %}{% endfor %}],
+              borderWidth: 0
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '55%',
+          plugins: {
+              legend: {
+                  position: 'right',
+                  labels: { color: '#A0AEC0', padding: 10 }
+              }
+          }
+      }
+  });
+  {% endif %}
+
+  {% if daily_data %}
+  // Bar Chart
+  new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+          labels: [{% for d in daily_data %}'{{ d.date }}'{% if not loop.last %},{% endif %}{% endfor %}],
+          datasets: [{
+              label: 'Daily Spending',
+              data: [{% for d in daily_data %}{{ d.total }}{% if not loop.last %},{% endif %}{% endfor %}],
+              backgroundColor: '#667EEA',
+              borderRadius: 5
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+              legend: { display: false }
+          },
+          scales: {
+              x: {
+                  ticks: { color: '#A0AEC0' },
+                  grid: { display: false }
+              },
+              y: {
+                  ticks: { color: '#A0AEC0' },
+                  grid: { color: 'rgba(255,255,255,0.1)' }
+              }
+          }
+      }
+  });
+  {% endif %}
+</script>
+{% endblock %}

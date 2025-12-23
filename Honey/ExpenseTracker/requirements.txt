@@ -1,0 +1,14 @@
+# Expense Tracker - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Database
+mysql-connector-python>=8.0.0
+
+# GUI Components
+tkcalendar>=1.6.1
+
+# Charts and Visualization (optional but recommended)
+matplotlib>=3.5.0
+
+# Image handling (optional)
+Pillow>=9.0.0
